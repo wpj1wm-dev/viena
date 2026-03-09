@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Painel de Análises Tributárias</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Estilo do widget de chat do n8n -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css"
+        rel="stylesheet"
+    />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #111827, #1f2933);
+            color: #f9fafb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: rgba(17, 24, 39, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(156, 163, 175, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            border-radius: 999px;
+            border: 1px solid rgba(156, 163, 175, 0.6);
+            background: rgba(31, 41, 55, 0.9);
+            color: #f9fafb;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(55, 65, 81, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            padding: 10px 10px 0 10px;
+            border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            padding: 8px 14px;
+            border-radius: 999px 999px 0 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .tab-button span.dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(156, 163, 175, 0.7);
+        }
+
+        .tab-button.active {
+            background: #111827;
+            color: #f9fafb;
+            border-bottom-color: #38bdf8;
+        }
+
+        .tab-button.active span.dot {
+            background: #38bdf8;
+        }
+
+        .tab-content-wrapper {
+            flex: 1;
+            position: relative;
+            padding: 10px;
+        }
+
+        .tab-content {
+            position: absolute;
+            inset: 10px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            background: #020617;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .report-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Ajustes específicos para a aba do chat */
+        [data-tab-content="chat"] {
+            padding: 0;
+        }
+
+        #n8n-chat {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ====== SUBMENUS DENTRO DE "INTELIGÊNCIA ARTIFICIAL" ====== */
+
+        .tab-content.ia-tab {
+            display: none;
+        }
+
+        .tab-content.ia-tab.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ia-sub-tabs {
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+            background: #020617;
+        }
+
+        .ia-sub-btn {
+            border: none;
+            background: #020617;
+            color: #9ca3af;
+            padding: 6px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .ia-sub-btn:hover {
+            background: #111827;
+            color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+        .ia-sub-btn.active {
+            background: #1f2937;
+            color: #f9fafb;
+            border-color: #38bdf8;
+        }
+
+        .ia-inner-content-wrapper {
+            flex: 1;
+            position: relative;
+            padding: 10px;
+        }
+
+        .ia-tab-content {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            background: #020617;
+        }
+
+        .ia-tab-content.active {
+            display: block;
+        }
+
+        .ia-simulacoes-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app">
+        <header>
+            <h1>Painel de Análises Tributárias</h1>
+
+            <div class="toolbar">
+                <button class="btn" id="fullscreenBtn" type="button">
+                    <span class="btn-icon">⛶</span>
+                    <span>Tela cheia</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="main">
+            <!-- Abas -->
+            <nav class="tabs" role="tablist">
+
+                <!-- NOVA PRIMEIRA ABA -->
+                <button class="tab-button active" data-tab="intro" role="tab" aria-selected="true">
+                    <span class="dot"></span>
+                    Introdução
+                </button>
+
+                <button class="tab-button" data-tab="tdd" role="tab" aria-selected="false">
+                    <span class="dot"></span>
+                    TDD
+                </button>
+
+                <button class="tab-button" data-tab="intercompany" role="tab" aria-selected="false">
+                    <span class="dot"></span>
+                    Operações Intercompany
+                </button>
+                
+                <!-- NOVA ÚLTIMA ABA: INTELIGÊNCIA ARTIFICIAL -->
+                <button class="tab-button" data-tab="ia" role="tab" aria-selected="false">
+                    <span class="dot"></span>
+                    Reforma Tributária
+                </button>
+
+            </nav>
+
+            <!-- Conteúdo das abas -->
+            <div class="tab-content-wrapper">
+
+                <!-- Introdução -->
+                <section class="tab-content active p-4 md:p-8" data-tab-content="intro">
+                    <div class="flex justify-center items-start w-full h-auto">
+                        <img
+                            src="https://raw.githubusercontent.com/wpj1wm-dev/frio-pecas/main/Capa.png"
+                            alt="Imagem da Capa do Projeto Frio Peças"
+                            class="w-full h-auto shadow-xl transition duration-300"
+                            onerror="this.src='https://placehold.co/1200x600/4F46E5/ffffff?text=IMAGEM+NAO+ENCONTRADA+Verifique+o+link+RAW'"
+                        />
+                    </div>
+                </section>
+                
+                <!-- TDD -->
+                <section class="tab-content" data-tab-content="tdd">
+                    <iframe
+                        class="report-frame"
+                        src="https://app.powerbi.com/reportEmbed?reportId=3312874b-6e57-4ca7-bf58-f7303eec708c&autoAuth=true&ctid=18fd44de-f8a4-45e0-b2f5-8e258ac0e6ee&actionBarEnabled=true&reportCopilotInEmbed=true"
+                        allowfullscreen="true">
+                    </iframe>
+                </section>
+
+                <!-- Intercompany -->
+                <section class="tab-content" data-tab-content="intercompany">
+                    <iframe
+                        class="report-frame"
+                        src="https://app.powerbi.com/reportEmbed?reportId=b530b852-212b-4a5b-ad05-f821f60e4ad5&autoAuth=true&ctid=18fd44de-f8a4-45e0-b2f5-8e258ac0e6ee&actionBarEnabled=true&reportCopilotInEmbed=true">
+                    </iframe>
+                </section>
+
+                <!-- INTELIGÊNCIA ARTIFICIAL (com submenus) -->
+                <section class="tab-content ia-tab" data-tab-content="ia">
+
+                    <!-- Submenus -->
+                    <div class="ia-sub-tabs">
+                        <button class="ia-sub-btn active" data-ia-tab="chat">
+                            Chat - Agente IA
+                        </button>
+                        <button class="ia-sub-btn" data-ia-tab="analise-op">
+                            Análise Operações - IA 1
+                        </button>
+                        <button class="ia-sub-btn" data-ia-tab="analise-op2">
+                            Análise Operações - IA 2
+                        </button>                       
+                        <button class="ia-sub-btn" data-ia-tab="analise-op3">
+                            Tomador Serviços - IA
+                        </button>                       
+                        <button class="ia-sub-btn" data-ia-tab="simulacoes">
+                            Simulações
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo dos submenus -->
+                    <div class="ia-inner-content-wrapper">
+                        <!-- Chat - Agente IA -->
+                        <div class="ia-tab-content active" data-ia-tab-content="chat">
+                            <div id="n8n-chat"></div>
+                        </div>
+
+                        <!-- Análise Operações -->
+                        <div class="ia-tab-content" data-ia-tab-content="analise-op">
+                            <iframe
+                                class="report-frame"
+                                src="Imagens/dashboard_reforma_viena_entradas_zfm.html">
+                            </iframe>
+                        </div>
+
+                        <div class="ia-tab-content" data-ia-tab-content="analise-op2">
+                            <iframe
+                                class="report-frame"
+                                src="Imagens/dashboard_reforma_viena_saidas.html">
+                            </iframe>
+                        </div>
+
+                        <div class="ia-tab-content" data-ia-tab-content="analise-op3">
+                            <iframe
+                                class="report-frame"
+                                src="Imagens/dashboard_servicos_viena_A170.html">
+                            </iframe>
+                        </div>
+                        
+                        <!-- Simulações (sem link por enquanto) -->
+                        <div class="ia-tab-content" data-ia-tab-content="simulacoes">
+                            <iframe
+                                class="report-frame"
+                                src="https://app.powerbi.com/reportEmbed?reportId=399eb104-f2e0-4291-9936-99a154bc9cdb&autoAuth=true&ctid=18fd44de-f8a4-45e0-b2f5-8e258ac0e6ee&actionBarEnabled=true&reportCopilotInEmbed=true">
+                            </iframe>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lógica das abas principais
+        const tabButtons = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const target = button.getAttribute("data-tab");
+
+                // Atualiza botões
+                tabButtons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+
+                // Atualiza conteúdos
+                tabContents.forEach(content => {
+                    const tabName = content.getAttribute("data-tab-content");
+                    if (tabName === target) {
+                        content.classList.add("active");
+                    } else {
+                        content.classList.remove("active");
+                    }
+                });
+            });
+        });
+
+        // Lógica dos submenus da aba "Inteligência Artificial"
+        const iaSubButtons = document.querySelectorAll(".ia-sub-btn");
+        const iaTabContents = document.querySelectorAll(".ia-tab-content");
+
+        iaSubButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const target = button.getAttribute("data-ia-tab");
+
+                iaSubButtons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+
+                iaTabContents.forEach(content => {
+                    const tabName = content.getAttribute("data-ia-tab-content");
+                    if (tabName === target) {
+                        content.classList.add("active");
+                    } else {
+                        content.classList.remove("active");
+                    }
+                });
+            });
+        });
+
+        // Tela cheia
+        const fullscreenBtn = document.getElementById("fullscreenBtn");
+        const appContainer = document.getElementById("app");
+
+        function updateFullscreenButton() {
+            if (document.fullscreenElement) {
+                fullscreenBtn.querySelector("span.btn-icon").textContent = "🗗";
+                fullscreenBtn.querySelector("span:nth-child(2)").textContent = "Sair da tela cheia";
+            } else {
+                fullscreenBtn.querySelector("span.btn-icon").textContent = "⛶";
+                fullscreenBtn.querySelector("span:nth-child(2)").textContent = "Tela cheia";
+            }
+        }
+
+        fullscreenBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement) {
+                appContainer.requestFullscreen().catch(err => console.error(err));
+            } else {
+                document.exitFullscreen().catch(err => console.error(err));
+            }
+        });
+
+        document.addEventListener("fullscreenchange", updateFullscreenButton);
+    </script>
+
+    <!-- Script do widget de chat (ESM) -->
+    <script type="module">
+        import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat@latest/+esm";
+    
+        createChat({
+            webhookUrl: "https://wpj1wm.app.n8n.cloud/webhook/ddf4ea5b-94fc-4fbf-b856-95d39a04eb59/chat",
+            target: "#n8n-chat",
+            mode: "fullscreen",
+    
+            showWelcomeScreen: true,
+            defaultLanguage: "pt",
+    
+            // >>> MENSAGENS INICIAIS (bubbles do bot)
+            initialMessages: [
+                "Olá! 👋",
+                "Meu nome é Agente LC214. Como posso te ajudar hoje?"
+            ],
+    
+            // >>> TEXTOS DA TELA (título, subtítulo, placeholder etc.)
+            i18n: {
+                pt: {
+                    title: "Agente de IA Tributário",
+                    subtitle: "Treinado com base na Reforma Tributária (LC 214/2025) 👋",
+                    footer: "",
+                    getStarted: "Nova conversa",
+                    inputPlaceholder: "Digite sua pergunta..."
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
