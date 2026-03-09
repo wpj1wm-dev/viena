@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIENA · Análise Tributária de Serviços (A170)</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+    --bg-main:#050816; --bg-card:#0b1120; --bg-soft:#020617; --border-subtle:#1f2937;
+    --text-main:#e5e7eb; --text-muted:#9ca3af; --accent:#38bdf8; --accent-2:#22c55e;
+    --accent-3:#f59e0b; --accent-4:#ef4444; --accent-5:#a855f7; --shadow:0 20px 40px rgba(2,6,23,.55);
+}
+* { box-sizing:border-box; }
+body {
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:radial-gradient(circle at top left, #1b2a4a 0, #020617 35%, #020617 100%);
+    color:var(--text-main); padding:30px 12px 44px;
+}
+.page { max-width:1480px; margin:0 auto; }
+header { margin-bottom:28px; }
+.badge-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+.badge { display:inline-flex; align-items:center; gap:8px; font-size:12px; padding:6px 10px; border-radius:999px;
+    background:linear-gradient(135deg, rgba(56, 189, 248, .18), rgba(37, 99, 235, .16));
+    color:var(--accent); border:1px solid rgba(56,189,248,.35); }
+.badge .dot { width:8px; height:8px; border-radius:999px; background:var(--accent); box-shadow:0 0 0 5px rgba(56,189,248,.25); }
+h1 { font-size:30px; margin:0 0 6px; letter-spacing:-.03em; }
+.subtitle { font-size:14px; color:var(--text-muted); max-width:1120px; line-height:1.6; }
+.kpi-row { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:12px; margin-top:18px; }
+@media (max-width:1200px) { .kpi-row { grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@media (max-width:760px) { .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+.kpi { border:1px solid var(--border-subtle); background:radial-gradient(circle at top left, rgba(56, 189, 248, .10), #020617 62%);
+    border-radius:18px; padding:14px 15px; box-shadow:var(--shadow); min-height:110px; }
+.kpi .label { color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.kpi .value { margin-top:9px; font-size:28px; font-weight:800; letter-spacing:-.03em; }
+.kpi .helper { margin-top:6px; color:var(--text-muted); font-size:12px; line-height:1.5; }
+.grid-2 { display:grid; grid-template-columns:1.1fr .9fr; gap:14px; margin-top:14px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin-top:14px; }
+.grid-2-eq { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px; margin-top:14px; }
+@media (max-width:1100px) { .grid-2,.grid-3,.grid-2-eq { grid-template-columns:1fr; } }
+.card { background:linear-gradient(180deg, rgba(11,17,32,.95), rgba(2,6,23,.96));
+    border:1px solid var(--border-subtle); border-radius:20px; padding:14px; box-shadow:var(--shadow); }
+.card h2 { margin:2px 0 2px; font-size:17px; letter-spacing:-.02em; }
+.card p.small { margin:0; color:var(--text-muted); font-size:13px; line-height:1.5; }
+.chart { height:360px; }
+.chart.tall { height:430px; }
+.section-title { margin:26px 0 6px; font-size:20px; letter-spacing:-.02em; }
+.note-list { margin:12px 0 0; padding-left:18px; color:var(--text-main); }
+.note-list li { margin:8px 0; line-height:1.55; }
+.table-wrap { overflow:auto; margin-top:10px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:10px 10px; border-bottom:1px solid rgba(148,163,184,.15); text-align:left; vertical-align:top; }
+th { color:#cbd5e1; font-weight:600; background:rgba(15,23,42,.55); position:sticky; top:0; }
+td.num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.pill-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.pill { padding:10px 12px; border-radius:14px; border:1px solid rgba(148,163,184,.16); background:rgba(15,23,42,.6); min-width:170px; }
+.pill .top { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; }
+.pill .bot { margin-top:5px; font-size:16px; font-weight:700; }
+.foot { margin-top:22px; color:var(--text-muted); font-size:12px; }
+.callout {
+    padding:14px 16px; border-radius:18px; border:1px solid rgba(34,197,94,.25);
+    background:linear-gradient(135deg, rgba(34,197,94,.10), rgba(56,189,248,.08));
+    margin-top:14px;
+}
+.callout h3 { margin:0 0 8px; font-size:16px; }
+.dual-list { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px; }
+@media (max-width:960px) { .dual-list { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <div class="badge-row">
+    <div class="badge"><span class="dot"></span> Dashboard tributário · Serviços tomados (A170)</div>
+    <div class="badge">VIENA · foco em volume, local da prestação e exposição territorial</div>
+  </div>
+  <h1>Análise Tributária da VIENA · Serviços tomados (A170)</h1>
+  <div class="subtitle">
+    Painel executivo construído com base na aba <strong>A170</strong> do arquivo fiscal da VIENA. O objetivo principal é revelar
+    <strong>volume financeiro</strong>, <strong>concentração territorial</strong> e <strong>localidade da prestação</strong>, com leitura complementar
+    sobre ISS, créditos de PIS/COFINS, timing entre documento e execução e impactos preparatórios para a Reforma Tributária sobre serviços.
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="label">Volume de serviços</div><div class="value">R$ 123.117,30</div><div class="helper">45 documentos analisados</div></div>
+    <div class="kpi"><div class="label">Ticket médio</div><div class="value">R$ 2.735,94</div><div class="helper">Valor médio por documento</div></div>
+    <div class="kpi"><div class="label">Fornecedores</div><div class="value">12</div><div class="helper">6 municípios · 3 UFs</div></div>
+    <div class="kpi"><div class="label">Volume fora de MG</div><div class="value">29,1%</div><div class="helper">R$ 35.821,99 fora de Minas Gerais</div></div>
+    <div class="kpi"><div class="label">ISS escriturado</div><div class="value">R$ 3.421,03</div><div class="helper">Incidência observada na base</div></div>
+    <div class="kpi"><div class="label">PIS/COFINS crédito</div><div class="value">R$ 11.388,41</div><div class="helper">PIS R$ 2.031,48 · COFINS R$ 9.356,93</div></div>
+  </div>
+</header>
+
+<section class="grid-2">
+  <div class="card">
+    <h2>Leitura executiva</h2>
+    <p class="small">Os principais sinais da base de serviços tomados pela VIENA estão resumidos abaixo.</p>
+    <ul class="note-list"><li>A base A170 da VIENA contém 45 documentos de serviços, somando R$ 123,117.30, com ticket médio de R$ 2,735.94.</li>
+<li>A concentração territorial é elevada: Belo Horizonte/MG responde por 58.2% do volume e os 3 principais municípios concentram 91.8% da base.</li>
+<li>29.1% do valor está fora de Minas Gerais, o que amplia a exposição ao critério de destino da reforma para serviços.</li>
+<li>O ISS identificado na base soma R$ 3,421.03 e está integralmente concentrado em Belo Horizonte/MG nesta extração.</li>
+<li>O prazo entre documento e execução tem mediana de 10 dias e média de 13.6 dias, sugerindo atenção para consistência temporal da escrituração.</li></ul>
+    <div class="pill-row">
+      <div class="pill"><div class="top">Cidade líder</div><div class="bot">Belo Horizonte/Minas Gerais</div></div>
+      <div class="pill"><div class="top">Share da cidade líder</div><div class="bot">58,2%</div></div>
+      <div class="pill"><div class="top">Top fornecedor</div><div class="bot">ARTEBRILHO MULTSERVICOS LTDA</div></div>
+      <div class="pill"><div class="top">HHI municipal</div><div class="bot">0.402</div></div>
+    </div>
+    <div class="callout">
+      <h3>Leitura para a reforma</h3>
+      <div class="small">A base já revela uma agenda clássica de preparação: alta concentração municipal, parcela relevante fora de MG e dependência de poucos fornecedores.
+      Para serviços, isso tende a aumentar a importância do <strong>cadastro do local da prestação</strong>, da prova operacional do destino e da consistência entre contrato, nota e escrituração.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Evolução temporal do volume e do ISS</h2>
+    <p class="small">A leitura por mês de execução mostra quando o gasto em serviços acelera e onde há incidência de ISS na base.</p>
+    <div id="chart_monthly" class="chart"></div>
+  </div>
+</section>
+
+<h2 class="section-title">Local da prestação e concentração territorial</h2>
+<section class="grid-3">
+  <div class="card">
+    <h2>Distribuição por UF</h2>
+    <p class="small">Proxy territorial da prestação / contratação registrada na base.</p>
+    <div id="chart_uf" class="chart"></div>
+  </div>
+  <div class="card">
+    <h2>Top municípios por volume</h2>
+    <p class="small">Belo Horizonte domina a base, seguida por Brasília e Teófilo Otoni.</p>
+    <div id="chart_city" class="chart"></div>
+  </div>
+  <div class="card">
+    <h2>Heatmap mês × município</h2>
+    <p class="small">Mapa de calor da materialidade por localidade ao longo do período.</p>
+    <div id="chart_heat" class="chart"></div>
+  </div>
+</section>
+
+<section class="grid-2-eq">
+  <div class="card">
+    <h2>Árvore territorial de fornecedores</h2>
+    <p class="small">Hierarquia UF → município → fornecedor para visualizar dependência operacional e fiscal.</p>
+    <div id="chart_treemap" class="chart tall"></div>
+  </div>
+  <div class="card">
+    <h2>Fornecedores com maior materialidade</h2>
+    <p class="small">A base é bastante concentrada em poucos prestadores.</p>
+    <div id="chart_supplier" class="chart tall"></div>
+  </div>
+</section>
+
+<h2 class="section-title">Natureza do serviço e consistência da escrituração</h2>
+<section class="grid-2-eq">
+  <div class="card">
+    <h2>Serviços/descrições mais relevantes</h2>
+    <p class="small">A concentração temática ajuda a priorizar revisão de contratos, localidade e incidência.</p>
+    <div id="chart_desc" class="chart"></div>
+  </div>
+  <div class="card">
+    <h2>Defasagem entre documento e execução</h2>
+    <p class="small">Faixas de tempo entre a data do documento e a data de execução do serviço.</p>
+    <div id="chart_lag" class="chart"></div>
+  </div>
+</section>
+
+<section class="grid-2-eq">
+  <div class="card">
+    <h2>Top documentos por materialidade</h2>
+    <p class="small">Seleção dos documentos que mais pesam na base e devem liderar a trilha de revisão.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Execução</th><th>Fornecedor</th><th>Local</th><th>Descrição</th><th style="text-align:right;">Valor</th></tr></thead>
+        <tbody><tr><td>17/06/2024</td><td>ARTEBRILHO MULTSERVICOS LTDA</td><td>Belo Horizonte/Minas Gerais</td><td>LIMPEZA MANUT CONS VIAS PUBL IMOV E CONG</td><td class='num'>R$ 36.101,31</td></tr>
+<tr><td>07/06/2024</td><td>ARTEBRILHO MULTSERVICOS LTDA</td><td>Belo Horizonte/Minas Gerais</td><td>LIMPEZA MANUT CONS VIAS PUBL IMOV E CONG</td><td class='num'>R$ 32.319,27</td></tr>
+<tr><td>11/06/2024</td><td>BRASIAR AR CONDICIONADO LTDA</td><td>Brasília/Distrito Federal</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 6.750,00</td></tr>
+<tr><td>22/05/2024</td><td>TN BSB CONTROLE AMBIENTAL LTDA</td><td>Brasília/Distrito Federal</td><td>DEDETIZACAO DESINF HIGIENIZACAO DESRATIZ</td><td class='num'>R$ 4.481,40</td></tr>
+<tr><td>22/05/2024</td><td>TN BSB CONTROLE AMBIENTAL LTDA</td><td>Brasília/Distrito Federal</td><td>DEDETIZACAO DESINF HIGIENIZACAO DESRATIZ</td><td class='num'>R$ 4.481,40</td></tr>
+<tr><td>22/05/2024</td><td>BRASIAR AR CONDICIONADO LTDA</td><td>Brasília/Distrito Federal</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 2.700,00</td></tr>
+<tr><td>11/06/2024</td><td>BRASIAR AR CONDICIONADO LTDA</td><td>Brasília/Distrito Federal</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 2.700,00</td></tr>
+<tr><td>06/06/2024</td><td>ADRIANY SOARES DA SILVA 06185366630</td><td>Teófilo Otoni/Minas Gerais</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 2.384,04</td></tr>
+<tr><td>17/05/2024</td><td>ADRIANY SOARES DA SILVA 06185366630</td><td>Teófilo Otoni/Minas Gerais</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 2.384,04</td></tr>
+<tr><td>23/05/2024</td><td>ADRIANY SOARES DA SILVA 06185366630</td><td>Teófilo Otoni/Minas Gerais</td><td>LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP</td><td class='num'>R$ 2.384,04</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Pontos de atenção tributária</h2>
+    <p class="small">Achados com foco prático para compliance e reforma.</p>
+    <ul class="note-list">
+      <li><strong>Concentração territorial relevante:</strong> 91,8% do volume está nos 3 principais municípios, o que amplia o risco de dependência cadastral/local.</li>
+      <li><strong>Exposição interestadual:</strong> 29,1% do valor foi escriturado fora de Minas Gerais.</li>
+      <li><strong>ISS concentrado:</strong> todo o ISS observado na base aparece em Belo Horizonte/MG nesta extração.</li>
+      <li><strong>Poucos fornecedores explicam a base:</strong> os 5 maiores respondem por 93,6% do volume.</li>
+      <li><strong>Campos de classificação pouco detalhados:</strong> TIPO SERVIÇO, DESC ITEM e COD LC 116 vieram praticamente uniformes, exigindo reforço na camada cadastral/contratual para análises mais finas.</li>
+      <li><strong>Agenda de reforma para serviços:</strong> revisar local efetivo da prestação e natureza dos serviços passa a ser tão importante quanto a própria alíquota.</li>
+    </ul>
+  </div>
+</section>
+
+<h2 class="section-title">Premissas e trilha recomendada</h2>
+<section class="dual-list">
+  <div class="card">
+    <h2>Premissas adotadas</h2>
+    <ul class="note-list"><li>A análise foi construída a partir da aba A170 do arquivo Cruzamentosdedados_VIENA.xlsx, considerando os campos de documento, execução, fornecedor, município/UF, item e tributos informados na própria escrituração.</li><li>O local da prestação foi analisado com base nos campos MUNICIPIO e UF presentes na base. Em termos jurídico-tributários, esse campo é tratado aqui como proxy operacional do destino/localidade da prestação.</li><li>Os valores de PIS, COFINS e ISS refletem a escrituração existente na base enviada; não houve arbitramento externo de alíquotas.</li><li>No contexto da reforma, o painel enfatiza exposição territorial e concentração por município/UF, por serem vetores críticos para serviços sob lógica de destino.</li></ul>
+  </div>
+  <div class="card">
+    <h2>Trilha recomendada</h2>
+    <ul class="note-list"><li>Validar, por contrato e por item de serviço, se o município/UF informado na escrituração representa efetivamente o local da prestação, o domicílio do prestador ou apenas o endereço cadastral.</li><li>Mapear os serviços mais relevantes por fornecedor e por município, priorizando os de maior materialidade financeira e os sujeitos a ISS ou a regras específicas de local da incidência.</li><li>Criar trilha de revisão dos cadastros de serviço para vincular LC 116, centro de custo, natureza do serviço e local efetivo de execução.</li><li>Preparar matriz pré-reforma vs. pós-reforma para serviços, segregando operações internas, interestaduais e eventuais exceções/regimes específicos.</li></ul>
+  </div>
+</section>
+
+<div class="foot">Dashboard gerado automaticamente a partir da aba A170 do arquivo fiscal da VIENA.</div>
+</div>
+
+<script>
+const data = {"monthly": {"x": ["2024-04", "2024-05", "2024-06"], "valor": [1014.74, 26782.46, 95320.1], "iss": [0.0, 0.0, 3421.03], "docs": [1, 19, 25]}, "uf": {"labels": ["Minas Gerais", "Distrito Federal", "São Paulo"], "values": [87295.31, 25972.8, 9849.19]}, "city": {"labels": ["Belo Horizonte / Minas Gerais", "Brasília / Distrito Federal", "Teófilo Otoni / Minas Gerais", "Diadema / São Paulo", "São Paulo / São Paulo", "Lagoa Santa / Minas Gerais"], "values": [71627.47, 25972.8, 15367.84, 5530.4, 4318.79, 300.0], "iss": [3421.03, 0.0, 0.0, 0.0, 0.0, 0.0], "docs": [6, 14, 11, 10, 3, 1]}, "supplier": {"labels": ["ARTEBRILHO MULTSERVICOS LTDA", "BRASIAR AR CONDICIONADO LTDA", "ADRIANY SOARES DA SILVA 06185366630", "TN BSB CONTROLE AMBIENTAL LTDA", "TREINNAR SERV.EQUIP.CONTRA INCENDIO", "EXTREMA LIMPEZA DE EQUIP COZ LTDA", "BIO PROLAB LABOR CONTR QUALID LTDA", "BOTIGAS COM PECAS E CONEXOES GAS LT", "RATIONAL BRASIL COMERCIO E DIST RATIONAL BRASIL COMERCIO E DIST", "AMBIENTE SANEAMENTO URBANO RURAL LT"], "values": [68420.58, 17010.0, 15367.84, 8962.8, 5530.4, 1800.0, 1769.0, 1500.0, 1018.79, 1014.74], "docs": [2, 12, 11, 2, 10, 1, 2, 1, 1, 1], "iss": [3421.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "desc": {"labels": ["LIMPEZA MANUT CONS VIAS PUBL IMOV E CONG", "LUBRIFICACAOMANUTENCAOCONSERTO MAQ/EQP", "DEDETIZACAO DESINF HIGIENIZACAO DESRATIZ", "MANUT PREVENTIVA SIST DE INCENDIO", "INSTALACAOMONTAGEM MAQUINAS/EQUIPAMENTO", "ANALISES CLIN MICROBIOLOGICA PAT E CONG", "MANUT PREVENTIVA COCCAO", "SERVICOS DE MANUT PREDIAL", "ITENS MANUTENCAO"], "values": [68420.58, 30767.44, 9977.54, 5530.4, 5210.4, 1320.0, 1018.79, 449.0, 423.15]}, "heat": {"x": ["Belo Horizonte", "Brasília", "Diadema", "Lagoa Santa", "São Paulo", "Teófilo Otoni"], "y": ["2024-04", "2024-05", "2024-06"], "z": [[1014.74, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 14362.8, 2765.2, 0.0, 1018.79, 8635.67], [70612.73, 11610.0, 2765.2, 300.0, 3300.0, 6732.17]]}, "treemap": {"uf": ["Minas Gerais", "Distrito Federal", "Minas Gerais", "Distrito Federal", "São Paulo", "São Paulo", "Minas Gerais", "São Paulo", "São Paulo", "Minas Gerais", "Minas Gerais", "Minas Gerais"], "mun": ["Belo Horizonte", "Brasília", "Teófilo Otoni", "Brasília", "Diadema", "São Paulo", "Belo Horizonte", "São Paulo", "São Paulo", "Belo Horizonte", "Belo Horizonte", "Lagoa Santa"], "sup": ["ARTEBRILHO MULTSERVICOS LTDA", "BRASIAR AR CONDICIONADO LTDA", "ADRIANY SOARES DA SILVA 06185366630", "TN BSB CONTROLE AMBIENTAL LTDA", "TREINNAR SERV.EQUIP.CONTRA INCENDIO", "EXTREMA LIMPEZA DE EQUIP COZ LTDA", "BIO PROLAB LABOR CONTR QUALID LTDA", "BOTIGAS COM PECAS E CONEXOES GAS LT", "RATIONAL BRASIL COMERCIO E DIST RATIONAL BRASIL COMERCIO E DIST", "AMBIENTE SANEAMENTO URBANO RURAL LT", "IRMAOS DUARTE CALIBRACOES LTDA", "HIDRO LACQUA COMERCIAL FILTROS LTDA"], "val": [68420.58, 17010.0, 15367.84, 8962.8, 5530.4, 1800.0, 1769.0, 1500.0, 1018.79, 1014.74, 423.15, 300.0]}, "lag": {"labels": ["Antecipado", "Mesmo dia", "1-5 dias", "6-10 dias", "11-20 dias", ">20 dias"], "values": [0, 0, 15, 10, 13, 7]}};
+
+const config = {responsive:true, displayModeBar:false};
+const baseLayout = {
+  paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+  font:{color:'#e5e7eb', family:'Segoe UI, sans-serif'},
+  margin:{l:48,r:20,t:24,b:46},
+  xaxis:{gridcolor:'rgba(148,163,184,.12)', zerolinecolor:'rgba(148,163,184,.12)'},
+  yaxis:{gridcolor:'rgba(148,163,184,.12)', zerolinecolor:'rgba(148,163,184,.12)'},
+  legend:{orientation:'h', yanchor:'bottom', y:1.02, x:0}
+};
+
+Plotly.newPlot('chart_monthly', [
+  {
+    type:'bar',
+    x:data.monthly.x,
+    y:data.monthly.valor,
+    name:'Volume de serviços',
+    marker:{color:'rgba(56,189,248,.85)'},
+    hovertemplate:'%{x}<br>Volume: R$ %{y:,.2f}<extra></extra>'
+  },
+  {
+    type:'scatter',
+    x:data.monthly.x,
+    y:data.monthly.iss,
+    yaxis:'y2',
+    mode:'lines+markers',
+    name:'ISS',
+    line:{color:'rgba(245,158,11,.95)', width:3},
+    marker:{size:8},
+    hovertemplate:'%{x}<br>ISS: R$ %{y:,.2f}<extra></extra>'
+  }
+], {
+  ...baseLayout,
+  yaxis:{title:'Volume (R$)', gridcolor:'rgba(148,163,184,.12)'},
+  yaxis2:{title:'ISS (R$)', overlaying:'y', side:'right'},
+  bargap:.35
+}, config);
+
+Plotly.newPlot('chart_uf', [{
+  type:'pie',
+  labels:data.uf.labels,
+  values:data.uf.values,
+  hole:.55,
+  textinfo:'label+percent',
+  hovertemplate:'%{label}<br>R$ %{value:,.2f}<extra></extra>',
+  marker:{line:{color:'#0b1120', width:2}}
+}], {
+  ...baseLayout,
+  margin:{l:10,r:10,t:10,b:10},
+  showlegend:true
+}, config);
+
+Plotly.newPlot('chart_city', [{
+  type:'bar', orientation:'h',
+  y:[...data.city.labels].reverse(),
+  x:[...data.city.values].reverse(),
+  text:[...data.city.values].reverse().map(v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})),
+  textposition:'outside',
+  cliponaxis:false,
+  marker:{color:'rgba(34,197,94,.82)'},
+  hovertemplate:'%{y}<br>Volume: R$ %{x:,.2f}<extra></extra>'
+}], {
+  ...baseLayout,
+  margin:{l:150,r:40,t:20,b:30},
+  xaxis:{title:'Volume (R$)', gridcolor:'rgba(148,163,184,.12)'},
+  yaxis:{automargin:true}
+}, config);
+
+Plotly.newPlot('chart_heat', [{
+  type:'heatmap',
+  x:data.heat.x,
+  y:data.heat.y,
+  z:data.heat.z,
+  colorscale:[
+    [0,'#0f172a'],
+    [.2,'#1d4ed8'],
+    [.45,'#06b6d4'],
+    [.7,'#22c55e'],
+    [1,'#f59e0b']
+  ],
+  hovertemplate:'Mês: %{y}<br>Município: %{x}<br>Valor: R$ %{z:,.2f}<extra></extra>'
+}], {
+  ...baseLayout,
+  margin:{l:70,r:20,t:20,b:50}
+}, config);
+
+Plotly.newPlot('chart_supplier', [{
+  type:'bar',
+  x:data.supplier.values.slice().reverse(),
+  y:data.supplier.labels.slice().reverse(),
+  orientation:'h',
+  marker:{color:'rgba(168,85,247,.82)'},
+  customdata:data.supplier.docs.slice().reverse(),
+  hovertemplate:'%{y}<br>Valor: R$ %{x:,.2f}<br>Docs: %{customdata}<extra></extra>'
+}], {
+  ...baseLayout,
+  margin:{l:220,r:20,t:20,b:35},
+  xaxis:{title:'Volume (R$)', gridcolor:'rgba(148,163,184,.12)'},
+  yaxis:{automargin:true}
+}, config);
+
+const ids = [];
+const labels = [];
+const parents = [];
+const values = [];
+const ufSeen = new Set();
+const citySeen = new Set();
+for (let i=0; i<data.treemap.uf.length; i++) {
+  const uf = data.treemap.uf[i];
+  const city = data.treemap.mun[i];
+  const sup = data.treemap.sup[i];
+  const val = data.treemap.val[i];
+  const ufId = 'uf|' + uf;
+  const cityId = ufId + '|city|' + city;
+  const supId = cityId + '|sup|' + i;
+  if (!ufSeen.has(ufId)) {
+    ids.push(ufId); labels.push(uf); parents.push(''); values.push(0);
+    ufSeen.add(ufId);
+  }
+  if (!citySeen.has(cityId)) {
+    ids.push(cityId); labels.push(city); parents.push(ufId); values.push(0);
+    citySeen.add(cityId);
+  }
+  ids.push(supId); labels.push(sup); parents.push(cityId); values.push(val);
+}
+Plotly.newPlot('chart_treemap', [{
+  type:'treemap',
+  ids: ids,
+  labels: labels,
+  parents: parents,
+  values: values,
+  branchvalues:'remainder',
+  textinfo:'label+value',
+  hovertemplate:'%{label}<br>R$ %{value:,.2f}<extra></extra>',
+  marker:{line:{width:1, color:'rgba(2,6,23,.8)'}}
+}], {
+  ...baseLayout,
+  margin:{l:10,r:10,t:10,b:10}
+}, config);
+
+Plotly.newPlot('chart_desc', [{
+  type:'bar',
+  x:data.desc.values.slice().reverse(),
+  y:data.desc.labels.slice().reverse(),
+  orientation:'h',
+  marker:{color:'rgba(239,68,68,.82)'},
+  hovertemplate:'%{y}<br>Valor: R$ %{x:,.2f}<extra></extra>'
+}], {
+  ...baseLayout,
+  margin:{l:250,r:20,t:20,b:35},
+  xaxis:{title:'Volume (R$)', gridcolor:'rgba(148,163,184,.12)'},
+  yaxis:{automargin:true}
+}, config);
+
+Plotly.newPlot('chart_lag', [{
+  type:'bar',
+  x:data.lag.labels,
+  y:data.lag.values,
+  marker:{color:'rgba(245,158,11,.82)'},
+  hovertemplate:'Faixa: %{x}<br>Documentos: %{y}<extra></extra>'
+}], {
+  ...baseLayout,
+  yaxis:{title:'Quantidade de documentos', gridcolor:'rgba(148,163,184,.12)'},
+  xaxis:{title:'Faixa de defasagem'}
+}, config);
+</script>
+</body>
+</html>
